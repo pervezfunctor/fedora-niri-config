@@ -119,9 +119,7 @@ export def --env bootstrap [] {
 
   for p in [
     "bin"
-    ".pixi/bin"
     ".local/bin"
-    ".cargo/bin"
     $"($env.DOT_DIR)/nu"
   ] {
     path add ($env.HOME | path join $p | path expand)

@@ -4,6 +4,7 @@
     bat
     bottom
     carapace
+    curl
     devbox
     devenv
     direnv
@@ -14,21 +15,24 @@
     gdu
     gh
     gum
-    shfmt
     imagemagick
     jq
     just
     lazygit
     nerd-fonts.jetbrains-mono
-    noevim
     nil
     nixd
     nixfmt
+    neovim
+    nushell
     ripgrep
     shellcheck
+    shfmt
+    starship
     tealdeer
     tectonic
     television
+    trash-cli
     xh
     zoxide
   ];
