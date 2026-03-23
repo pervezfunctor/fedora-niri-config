@@ -35,6 +35,7 @@ in
 
 
   programs = {
+    kitty.enable = true;
     nushell = {
       enable = true;
       plugins = [ pkgs.nushellPlugins.formats ];
