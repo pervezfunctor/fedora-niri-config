@@ -22,8 +22,17 @@ in
   home.username = vars.username;
   home.homeDirectory = vars.homeDirectory;
   home.stateVersion = "25.11";
+  news.display = "none";
 
   nixpkgs.config.allowUnfree = true;
+
+  home.pointerCursor = {
+    gtk.enable = true;
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Ice";
+    size = 32;
+  };
+
 
   programs = {
     nushell = {
@@ -80,10 +89,7 @@ in
     };
 
     direnv = {
-      enable = true;
-      enableFishIntegration = true;
-      enableBashIntegration = true;
-      enableNushellIntegration = true;
+      enable = true;      
       nix-direnv.enable = true;
     };
   };
