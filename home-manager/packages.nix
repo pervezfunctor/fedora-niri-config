@@ -3,13 +3,10 @@
   home.packages = with pkgs; [
     bat
     bottom
-    carapace
     curl
     devbox
     devenv
-    direnv
     duf
-    eza
     fd
     fzf
     gdu
@@ -18,7 +15,6 @@
     imagemagick
     jq
     just
-    lazygit
     nerd-fonts.jetbrains-mono
     nil
     nixd
@@ -28,12 +24,10 @@
     ripgrep
     shellcheck
     shfmt
-    starship
     tealdeer
     tectonic
     television
     trash-cli
     xh
-    zoxide
   ];
 }
