@@ -211,10 +211,6 @@ def "main uv" [] {
 }
 
 def "main shell" [] {
-  if not (is-fedora) {
-    die "Only Fedora supported. Quitting."
-  }
-
   init-log-file
   bootstrap
 
@@ -412,6 +408,10 @@ def "main update" [] {
 }
 
 def main [] {
+  if not (is-fedora) {
+    die "Only Fedora supported. Quitting."
+  }
+
   let job_id = keep-sudo-alive
   bootstrap
   main update

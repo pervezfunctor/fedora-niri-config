@@ -30,14 +30,6 @@ dotfiles_clone() {
   }
 }
 
-si() {
-  if has_cmd dnf; then
-    sudo dnf install -y "$@"
-  else
-    die "Failed to install packages. No package manager found."
-  fi
-}
-
 main() {
   export PATH="$HOME/.pixi/bin:$PATH"
 
@@ -47,11 +39,11 @@ main() {
     has_cmd pixi || die "Failed to install pixi"
   }
   pixi global install nushell trash-cli
+  has_cmd nu || die "Failed to install nushell"
 
-  has_cmd git || si git || die "Failed to install git"
+  has_cmd git || sudo dnf install -y git || die "Failed to install git"
   dotfiles_clone
 
-  has_cmd nu || die "Failed to install nushell"
   nu "$DOT_DIR/setup.nu" fish
 }
 
