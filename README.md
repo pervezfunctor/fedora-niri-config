@@ -1,7 +1,5 @@
 # Fedora Nix Niri Config
 
-Setup a Fedora workstation with `niri`, Home Manager, and a small set of dotfiles managed from this repo.
-
 ## Bootstrap
 
 Run the bootstrap script:
@@ -10,7 +8,7 @@ Run the bootstrap script:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-nix-niri-config/main/setup)"
 ```
 
-The bootstrap script clones the repo to `~/.local/share/fedora-nix-niri-config`, installs Nushell if needed, and runs the fish setup.
+The bootstrap script clones the repo to `~/.local/share/fedora-nix-niri-config`, installs nix and configures shell.
 
 ## Nushell setup commands
 
@@ -24,8 +22,6 @@ Available commands include:
 
 ```bash
 nu setup.nu shell
-nu setup.nu fish
-nu setup.nu stow fish
 nu setup.nu niri
 nu setup.nu flatpaks
 nu setup.nu virt
@@ -37,14 +33,14 @@ nu setup.nu help
 
 `setup.nu stow` is intentionally simple.
 
-- Pass a package name like `fish`, `kitty`, or `niri`
+- Pass a package name like `kitty`, or `niri`
 - The package is resolved from `$DOT_DIR/<package>`
 - Files are linked into `~/.config/<package>/...`
 
 Example:
 
 ```bash
-nu setup.nu stow fish
+nu setup.nu stow niri
 ```
 
-This links files from `$DOT_DIR/fish` into `~/.config/fish`.
+This links files from `$DOT_DIR/niri` into `~/.config/niri`.

@@ -160,7 +160,6 @@ def "main home-manager" [] {
 def "main system" [] {
   log+ "Installing system packages..."
   si [
-    "fish"
     "gcc"
     "git"
     "libatomic"
@@ -171,19 +170,6 @@ def "main system" [] {
     "zstd"
   ]
   do -i { ^sudo updatedb }
-}
-
-def "main fish config" [] {
-  log+ "setting up fish..."
-  stow-package "fish"
-
-  log+ "Change default shell to fish"
-  do -i { ^chsh -s (which fish) }
-}
-
-def "main fish" [] {
-  si ["fish"]
-  main fish config
 }
 
 def "main bun" [] {
@@ -384,8 +370,6 @@ def "main help" [] {
   print "  nix              Install nix package manager"
   print "  home-manager     Apply the home-manager flake"
   print "  system           Install base Fedora packages"
-  print "  fish             Install fish and apply fish config"
-  print "  fish config      Apply fish config only"
   print "  bun              Install bun"
   print "  uv               Install uv and pipx"
   print ""

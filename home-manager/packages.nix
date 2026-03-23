@@ -29,5 +29,6 @@
     television
     trash-cli
     xh
+    vscode
   ];
 }
