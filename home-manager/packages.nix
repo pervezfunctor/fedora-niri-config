@@ -1,0 +1,35 @@
+{ pkgs, ... }:
+{
+  home.packages = with pkgs; [
+    bat
+    bottom
+    carapace
+    devbox
+    devenv
+    direnv
+    duf
+    eza
+    fd
+    fzf
+    gdu
+    gh
+    gum
+    shfmt
+    imagemagick
+    jq
+    just
+    lazygit
+    nerd-fonts.jetbrains-mono
+    noevim
+    nil
+    nixd
+    nixfmt
+    ripgrep
+    shellcheck
+    tealdeer
+    tectonic
+    television
+    xh
+    zoxide
+  ];
+}

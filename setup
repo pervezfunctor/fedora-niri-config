@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+has_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+die() {
+  printf "ERROR: %s\n" "$*" >&2
+  exit 1
+}
+
+dotfiles_clone() {
+  readonly REPO_URL="https://github.com/pervezfunctor/linux-config.git"
+  readonly DOT_DIR="$HOME/.local/share/linux-config"
+
+  [ -d "$DOT_DIR" ] || {
+    echo "Cloning dotfiles to $DOT_DIR."
+    git clone "$REPO_URL" "$DOT_DIR" || die "Failed to clone $REPO_URL"
+    return
+  }
+
+  [ -z "$(git -C "$DOT_DIR" status --porcelain)" ] && {
+    echo "Dotfiles repo clean. Pulling latest changes"
+    git -C "$DOT_DIR" pull --rebase || {
+      echo "Rebase failed. Aborting."
+      git -C "$DOT_DIR" rebase --abort || die "Failed to abort rebase"
+    }
+  }
+}
+
+si() {
+  if has_cmd dnf; then
+    sudo dnf install -y "$@"
+  else
+    die "Failed to install packages. No package manager found."
+  fi
+}
+
+main() {
+  export PATH="$HOME/.pixi/bin:$PATH"
+
+  has_cmd pixi || {
+    echo "pixi is not installed. Installing pixi."
+    curl -fsSL https://get.pixi.run | bash
+    has_cmd pixi || die "Failed to install pixi"
+  }
+  pixi global install nushell trash-cli
+
+  has_cmd git || si git || die "Failed to install git"
+  dotfiles_clone
+
+  has_cmd nu || die "Failed to install nushell"
+  nu "$DOT_DIR/nu/setup.nu" fish
+}
+
+main "$@"
