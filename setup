@@ -12,8 +12,8 @@ die() {
 }
 
 dotfiles_clone() {
-  readonly REPO_URL="https://github.com/pervezfunctor/linux-config.git"
-  readonly DOT_DIR="$HOME/.local/share/linux-config"
+  readonly REPO_URL="https://github.com/pervezfunctor/fedora-nix-niri-config.git"
+  readonly DOT_DIR="$HOME/.local/share/fedora-nix-niri-config"
 
   [ -d "$DOT_DIR" ] || {
     echo "Cloning dotfiles to $DOT_DIR."
