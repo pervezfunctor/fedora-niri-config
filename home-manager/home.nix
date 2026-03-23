@@ -22,7 +22,7 @@ in
   home.username = vars.username;
   home.homeDirectory = vars.homeDirectory;
   home.stateVersion = "25.11";
-  news.display = "none";
+  news.display = "silent";
 
   nixpkgs.config.allowUnfree = true;
 
