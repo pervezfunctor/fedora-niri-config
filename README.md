@@ -7,7 +7,7 @@ Setup a Fedora workstation with `niri`, Home Manager, and a small set of dotfile
 Run the bootstrap script:
 
 ```bash
-bash -c '$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-nix-niri-config/main/setup)'
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-nix-niri-config/main/setup)"
 ```
 
 The bootstrap script clones the repo to `~/.local/share/fedora-nix-niri-config`, installs Nushell if needed, and runs the fish setup.
