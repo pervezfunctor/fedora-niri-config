@@ -4,8 +4,8 @@ use std/log
 use std/util "path add"
 
 export-env {
-  $env.DOT_DIR = ($env.HOME | path join ".local/share/fedora-niri-nix-config")
-  $env.LOG_FILE = ($env.HOME | path join ".fedora-niri-nix-config.log")
+  $env.DOT_DIR = ($env.HOME | path join ".local/share/fedora-nix-niri-config")
+  $env.LOG_FILE = ($env.HOME | path join ".fedora-nix-niri-config.log")
 }
 
 export def init-log-file [] {

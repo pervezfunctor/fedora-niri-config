@@ -52,7 +52,7 @@ main() {
   dotfiles_clone
 
   has_cmd nu || die "Failed to install nushell"
-  nu "$DOT_DIR/nu/setup.nu" fish
+  nu "$DOT_DIR/setup.nu" fish
 }
 
 main "$@"
