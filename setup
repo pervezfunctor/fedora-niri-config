@@ -15,7 +15,6 @@ readonly REPO_URL="https://github.com/pervezfunctor/fedora-nix-niri-config.git"
 readonly DOT_DIR="$HOME/.local/share/fedora-nix-niri-config"
 
 dotfiles_clone() {
-
   [ -d "$DOT_DIR" ] || {
     echo "Cloning dotfiles to $DOT_DIR."
     git clone "$REPO_URL" "$DOT_DIR" || die "Failed to clone $REPO_URL"
@@ -32,10 +31,12 @@ dotfiles_clone() {
 }
 
 main() {
-  has_cmd dnf || die "Only fedora supported."
-
-  sudo dnf update -y || die "Failed to update packages"
-  sudo dnf install -y curl git fish || die "Failed to install dependencies"
+  has_cmd dnf && {
+    sudo dnf update -y || die "Failed to update packages"
+    sudo dnf install -y curl git fish || die "Failed to install dependencies"
+  }
+  has_cmd git || die "Failed to install git"
+  has_cmd curl || die "Failed to install curl"
 
   has_cmd nix || {
     echo "Nix is not installed. Installing Nix."
@@ -49,7 +50,7 @@ main() {
 
   has_cmd nu || die "Failed to install nushell"
   dotfiles_clone
-  nu "$DOT_DIR/setup.nu" fish config
+  has_cmd fish && nu "$DOT_DIR/setup.nu" fish config
 }
 
 main "$@"
