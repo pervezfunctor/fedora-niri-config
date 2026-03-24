@@ -18,7 +18,7 @@ export def die [msg: string] {
 export def ensure-parent-dir [path: string] {
   let parent = ($path | path dirname)
   if not (dir-exists $parent) {
-    log info $"creating directory: $parent"
+    log info $"creating directory: ($parent)"
     mkdir $parent
   }
 }
@@ -77,7 +77,7 @@ export def group-add [group: string] {
   let group_names = ($groups_output | parse "{name}:x:{gid}:{members}" | get name)
 
   if $group in $group_names {
-    log info "adding user to group $group"
+    log info $"adding user to group ($group)"
     do -i { ^sudo usermod -aG $group $env.USER }
   } else {
     log warning $"($group) group not found, skipping"
@@ -85,7 +85,7 @@ export def group-add [group: string] {
 }
 
 export def si [packages: list<string>]: nothing -> bool {
-  log info $"Installing packages"
+  log info "Installing packages"
   do -i { ^sudo dnf install -y ...$packages }
 }
 
@@ -95,7 +95,7 @@ export def touch-files [dir: string, files: list<string>] {
   for f in $files {
     let file_path = ($dir | path join $f)
     if not ($file_path | path exists) {
-      log info "creating file $file_path"
+      log info $"creating file ($file_path)"
       touch $file_path
     }
   }
@@ -119,7 +119,7 @@ def "main stow" [package: string] {
 
 def "main vscode install" [] {
   if not (has-cmd code) {
-    log info "Installing vscode..."
+    log info "Installing vscode"
     dnf check-update
     si ["code"]
   }
@@ -133,10 +133,10 @@ def "main vscode config" [] {
     "TheNuProjectContributors.vscode-nushell-lang"
   ]
 
-  # log info "Installing vscode extensions"
-  # for ext in $extensions {
-  #   do -i { ^code --install-extension $ext }
-  # }
+  log info "Installing vscode extensions"
+  for ext in $extensions {
+    do -i { ^code --install-extension $ext }
+  }
 
   stow-package "Code"
 }
@@ -147,7 +147,7 @@ def "main vscode" [] {
 }
 
 def wm-install [] {
-  log info "Installing window manager packages..."
+  log info "Installing window manager packages"
   si [
     "adw-gtk3-theme"
     "cups-pk-helper"
@@ -196,13 +196,13 @@ def "main niri install" [] {
     return
   }
 
-  log info "Installing niri and dms..."
+  log info "Installing niri and dms"
   ^sudo dnf copr enable avengemedia/dms
   si ["niri" "dms" "cliphist"]
 }
 
 def "main niri config" [] {
-  log info "Setting up niri config..."
+  log info "Setting up niri config"
   stow-package "niri"
 
   let niri_dms = ($env.HOME | path join ".config/niri/dms")
@@ -221,7 +221,7 @@ def "main flatpaks" [] {
     si ["flatpak"]
   }
 
-  log info "Adding flathub remote..."
+  log info "Adding flathub remote"
   ^flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo --user
 
   let flatpaks = [
@@ -235,21 +235,21 @@ def "main flatpaks" [] {
 }
 
 def "main virt config" [] {
-  log info "Setting up libvirt..."
+  log info "Setting up libvirt"
 
   for group in ["libvirt" "qemu" "libvirt-qemu" "kvm" "libvirtd"] {
     do -i { ^sudo usermod -aG $group $env.USER }
   }
 
-  log info "Enabling libvirtd service..."
+  log info "Enabling libvirtd service"
   do -i { ^sudo systemctl enable --now libvirtd }
   do -i { ^sudo virsh net-autostart default }
-  log info "Enabling authselect with-libvirt feature..."
+  log info "Enabling authselect with-libvirt feature"
   do -i { ^sudo authselect enable-feature with-libvirt }
 }
 
 def "main virt install" [] {
-  log info "Installing virt-manager..."
+  log info "Installing virt-manager"
 
   si [
     "dnsmasq"
@@ -281,7 +281,7 @@ def "main fish" [] {
 }
 
 def "main desktop" [] {
-  log info "Installing desktop packages..."
+  log info "Installing desktop packages"
   si [
     "distrobox"
     "flatpak"
@@ -320,7 +320,7 @@ def "main help" [] {
 }
 
 def "main update" [] {
-  log info "Updating packages..."
+  log info "Updating packages"
   ^sudo dnf update -y
 }
 
