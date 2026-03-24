@@ -56,7 +56,7 @@ export def sln [src: string, dst: string] {
     }
   }
 
-  log info "linking $src -> $dst"
+  log info "linking ($src) -> ($dst)"
   ^ln -s $src $dst
 }
 
