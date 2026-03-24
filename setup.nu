@@ -36,6 +36,7 @@ export def die [msg: string] {
 export def ensure-parent-dir [path: string] {
   let parent = ($path | path dirname)
   if not (dir-exists $parent) {
+    log+ "creating parent dir $parent"
     mkdir $parent
   }
 }
@@ -61,9 +62,11 @@ export def sln [src: string, dst: string] {
   }
 
   if ($dst | path exists) {
+    log+ "$dst already exists, removing"
     if (has-cmd trash) { ^trash $dst } else { rm -f $dst }
   }
 
+  log+ "linking $src -> $dst"
   ^ln -s $src $dst
 }
 
@@ -84,6 +87,7 @@ export def group-add [group: string] {
   let group_names = ($groups_output | parse "{name}:x:{gid}:{members}" | get name)
 
   if $group in $group_names {
+    log+ "adding user to group $group"
     do -i { ^sudo usermod -aG $group $env.USER }
   } else {
     warn+ $"($group) group not found, skipping"
@@ -96,6 +100,7 @@ export def si [packages: list<string>]: nothing -> bool {
 }
 
 export def keep-sudo-alive []: nothing -> int {
+  log+ "keeping sudo alive"
   ^sudo -v
   job spawn {
     loop {
@@ -106,6 +111,7 @@ export def keep-sudo-alive []: nothing -> int {
 }
 
 export def stop-sudo-alive [job_id: int] {
+  log+ "stopping sudo alive"
   do -i {
     job kill $job_id
     ^sudo -k
@@ -132,6 +138,7 @@ export def touch-files [dir: string, files: list<string>] {
   for f in $files {
     let file_path = ($dir | path join $f)
     if not ($file_path | path exists) {
+      log+ "creating file $file_path"
       touch $file_path
     }
   }
@@ -206,6 +213,35 @@ def "main shell" [] {
 
 def "main stow" [package: string] {
   stow-package $package
+}
+
+def "main vscode install" [] {
+  if not (has-cmd code) {
+    log+ "Installing vscode..."
+    dnf check-update
+    si ["code"]
+  }
+}
+
+def "main vscode config" [] {
+  let extensions = [
+    "Catppuccin.catppuccin-vsc"
+    "jnoortheen.nix-ide"
+    "mads-hartmann.bash-ide-vscode"
+    "TheNuProjectContributors.vscode-nushell-lang"
+  ]
+
+  log+ "Installing vscode extensions"
+  for ext in $extensions {
+    do -i { ^code --install-extension $ext }
+  }
+
+  stow-package "Code"
+}
+
+def "main vscode" [] {
+  main vscode install
+  main vscode config
 }
 
 def wm-install [] {
@@ -307,12 +343,11 @@ def "main virt config" [] {
     do -i { ^sudo usermod -aG $group $env.USER }
   }
 
+  log+ "Enabling libvirtd service..."
   do -i { ^sudo systemctl enable --now libvirtd }
   do -i { ^sudo virsh net-autostart default }
-
-  if (has-cmd authselect) {
-    do -i { ^sudo authselect enable-feature with-libvirt }
-  }
+  log+ "Enabling authselect with-libvirt feature..."
+  do -i { ^sudo authselect enable-feature with-libvirt }
 }
 
 def "main virt install" [] {
@@ -374,6 +409,9 @@ def "main help" [] {
   print "  system           Install base Fedora packages"
   print "  bun              Install bun"
   print "  uv               Install uv and pipx"
+  print "  vscode           Install vscode and extensions"
+  print "  vscode install   Install vscode only"
+  print "  vscode config    Install vscode extensions/settings only"
   print ""
   print "  virt             Install and configure virt-manager/libvirt"
   print "  virt install     Install virt packages only"

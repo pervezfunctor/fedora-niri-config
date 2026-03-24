@@ -37,7 +37,7 @@ in
     sessionPath = [
       "$HOME/.local/bin"
       "$HOME/bin"
-      "$HOME/.local/share/fedora-nix-niri-config/nu"
+      "$HOME/.local/share/fedora-nix-niri-config"
     ];
   };
 
