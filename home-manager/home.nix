@@ -1,7 +1,7 @@
 { vars, pkgs, ... }:
 let
   shellAliases = {
-    hms = "nix run home-manager -- switch --flake ${vars.homeDirectory}/.local/share/fedora-nix-niri-config/home-manager#${vars.username}# --impure -b backup";
+    hms = "nix run home-manager -- switch --flake ${vars.homeDirectory}/.local/share/fedora-nix-niri-config/home-manager#${vars.username} --impure -b backup";
     gs = "git stash";
     gp = "git push";
     gb = "git branch";
@@ -26,16 +26,23 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
-  home.pointerCursor = {
-    gtk.enable = true;
-    package = pkgs.bibata-cursors;
-    name = "Bibata-Modern-Ice";
-    size = 32;
+  home = {
+    pointerCursor = {
+      gtk.enable = true;
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Ice";
+      size = 32;
+    };
+
+    sessionPath = [
+      "$HOME/.local/bin"
+      "$HOME/bin"
+      "$HOME/.local/share/fedora-nix-niri-config/nu"
+    ];
   };
 
-
   programs = {
-    kitty.enable = true;
+    man.generateCaches = false;
     nushell = {
       enable = true;
       plugins = [ pkgs.nushellPlugins.formats ];
@@ -46,6 +53,10 @@ in
     fish = {
       enable = true;
       shellAliases = shellAliases;
+
+      interactiveShellInit = ''
+        set -g fish_greeting
+      '';
     };
 
     fzf = {
@@ -90,7 +101,7 @@ in
     };
 
     direnv = {
-      enable = true;      
+      enable = true;
       nix-direnv.enable = true;
     };
   };
