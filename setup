@@ -52,6 +52,7 @@ pixi_install() {
 }
 
 main() {
+  export PATH="$HOME/.pixi/bin:$PATH"
   has_cmd dnf || die "only fedora supported. Quitting."
 
   system_install
