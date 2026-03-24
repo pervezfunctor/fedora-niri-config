@@ -274,7 +274,7 @@ def "main virt" [] {
   main virt config
 }
 
-def "main fish config" [] {
+def "main fish" [] {
   si ["fish"]
   stow-package "fish"
   do -i { ^sudo chsh -s /usr/bin/fish $env.USER }
@@ -314,6 +314,7 @@ def "main help" [] {
   print "  niri install     Install niri, dms, and related packages"
   print "  niri config      Apply niri config only"
   print "  flatpaks         Install flatpak applications"
+  print "  fish             Install and configure fish shell"
   print "  stow <package>   Symlink a config package into ~/.config"
   print ""
 }
