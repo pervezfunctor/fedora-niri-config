@@ -21,12 +21,10 @@ setup.nu
 Available commands include:
 
 ```bash
-nu setup.nu shell
+nu setup.nu help
 nu setup.nu niri
 nu setup.nu flatpaks
 nu setup.nu virt
-nu setup.nu update
-nu setup.nu help
 ```
 
 ## Dotfile layout
