@@ -1,14 +1,14 @@
-# Fedora Nix Niri Config
+# Fedora Niri Config
 
 ## Bootstrap
 
 Run the bootstrap script:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-nix-niri-config/main/setup)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-niri-config/main/setup)"
 ```
 
-The bootstrap script clones the repo to `~/.local/share/fedora-nix-niri-config`, installs nix and configures shell.
+The bootstrap script clones the repo to `~/.local/share/fedora-niri-config`, installs pixi and configures shell.
 
 ## Nushell setup commands
 

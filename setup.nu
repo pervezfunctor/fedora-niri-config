@@ -4,29 +4,11 @@ use std/log
 use std/util "path add"
 
 export-env {
-  $env.DOT_DIR = ($env.HOME | path join ".local/share/fedora-nix-niri-config")
-  $env.LOG_FILE = ($env.HOME | path join ".fedora-nix-niri-config.log")
+  $env.DOT_DIR = ($env.HOME | path join ".local/share/fedora-niri-config")
 }
-
-export def init-log-file [] {
-  if ($env.LOG_FILE | path exists) {
-    if (has-cmd trash) { ^trash $env.LOG_FILE } else { rm $env.LOG_FILE }
-  }
-
-  touch $env.LOG_FILE
-}
-
-export def log-to-file [level: string, msg: string] {
-  $"[($level)] ($msg)\n" | save --append $env.LOG_FILE
-}
-
-export def log+ [msg: string] { log info $msg; log-to-file "INFO" $msg }
-export def warn+ [msg: string] { log warning $msg; log-to-file "WARNING" $msg }
-export def error+ [msg: string] { log error $msg; log-to-file "ERROR" $msg }
 
 export def die [msg: string] {
   log critical $msg
-  log-to-file "CRITICAL" $msg
   error make {
     msg: $msg
     label: { text: "fatal error", span: (metadata $msg).span }
@@ -36,7 +18,7 @@ export def die [msg: string] {
 export def ensure-parent-dir [path: string] {
   let parent = ($path | path dirname)
   if not (dir-exists $parent) {
-    log+ "creating parent dir $parent"
+    log info "creating directory: $parent"
     mkdir $parent
   }
 }
@@ -57,16 +39,16 @@ export def is-fedora []: nothing -> bool {
 
 export def sln [src: string, dst: string] {
   if not (($src | path exists) and (($src | path type) != "dir")) {
-    error+ $"($src) does not exist. Skipping linking."
+    log error $"($src) does not exist. Skipping linking."
     return
   }
 
   if ($dst | path exists) {
-    log+ "$dst already exists, removing"
+    log info "$dst already exists, removing"
     if (has-cmd trash) { ^trash $dst } else { rm -f $dst }
   }
 
-  log+ "linking $src -> $dst"
+  log info "linking $src -> $dst"
   ^ln -s $src $dst
 }
 
@@ -87,40 +69,31 @@ export def group-add [group: string] {
   let group_names = ($groups_output | parse "{name}:x:{gid}:{members}" | get name)
 
   if $group in $group_names {
-    log+ "adding user to group $group"
+    log info "adding user to group $group"
     do -i { ^sudo usermod -aG $group $env.USER }
   } else {
-    warn+ $"($group) group not found, skipping"
+    log warning $"($group) group not found, skipping"
   }
 }
 
 export def si [packages: list<string>]: nothing -> bool {
-  log+ $"Installing packages"
+  log info $"Installing packages"
   do -i { ^sudo dnf install -y ...$packages }
 }
 
-export def keep-sudo-alive []: nothing -> int {
-  log+ "keeping sudo alive"
-  ^sudo -v
-  job spawn {
-    loop {
-      ^sudo -n true
-      sleep 55sec
+export def touch-files [dir: string, files: list<string>] {
+  do -i { mkdir $dir }
+
+  for f in $files {
+    let file_path = ($dir | path join $f)
+    if not ($file_path | path exists) {
+      log info "creating file $file_path"
+      touch $file_path
     }
   }
 }
 
-export def stop-sudo-alive [job_id: int] {
-  log+ "stopping sudo alive"
-  do -i {
-    job kill $job_id
-    ^sudo -k
-  }
-}
-
-export def --env bootstrap [] {
-  init-log-file
-
+def --env bootstrap [] {
   path add "/nix/var/nix/profiles/default/bin"
 
   for p in [
@@ -132,81 +105,13 @@ export def --env bootstrap [] {
   }
 }
 
-export def touch-files [dir: string, files: list<string>] {
-  do -i { mkdir $dir }
-
-  for f in $files {
-    let file_path = ($dir | path join $f)
-    if not ($file_path | path exists) {
-      log+ "creating file $file_path"
-      touch $file_path
-    }
-  }
-}
-
-def "main nix" [] {
-  if (has-cmd nix) {
-    log+ "nix is already installed"
-    return
-  }
-
-  log+ "Installing nix..."
-  http get https://install.determinate.systems/nix | ^sh -s -- install --determinate --no-confirm
-}
-
-def "main home-manager" [] {
-  if not (has-cmd nix) {
-    main nix
-  }
-
-  log+ "Setting up home-manager"
-  let flake_path = ($env.DOT_DIR | path join "home-manager")
-  ^nix run home-manager -- switch --flake $"($flake_path)#($env.USER)" --impure -b backup
-}
-
-def "main system" [] {
-  log+ "Installing system packages..."
-  si [
-    "gcc"
-    "git"
-    "libatomic"
-    "make"
-    "plocate"
-    "tar"
-    "unzip"
-    "zstd"
-  ]
-  do -i { ^sudo updatedb }
-}
-
-def "main uv" [] {
-  if not (has-cmd uv) {
-    log+ "Installing uv..."
-    (http get https://astral.sh/uv/install.sh) | ^bash
-  }
-
-  if not (has-cmd pipx) {
-    log+ "Installing pipx with uv..."
-    ^uv tool install pipx
-  }
-}
-
-def "main shell" [] {
-  init-log-file
-  bootstrap
-
-  main system
-  main home-manager
-  main uv
-}
-
 def "main stow" [package: string] {
   stow-package $package
 }
 
 def "main vscode install" [] {
   if not (has-cmd code) {
-    log+ "Installing vscode..."
+    log info "Installing vscode..."
     dnf check-update
     si ["code"]
   }
@@ -220,7 +125,7 @@ def "main vscode config" [] {
     "TheNuProjectContributors.vscode-nushell-lang"
   ]
 
-  log+ "Installing vscode extensions"
+  log info "Installing vscode extensions"
   for ext in $extensions {
     do -i { ^code --install-extension $ext }
   }
@@ -234,7 +139,7 @@ def "main vscode" [] {
 }
 
 def wm-install [] {
-  log+ "Installing window manager packages..."
+  log info "Installing window manager packages..."
   si [
     "adw-gtk3-theme"
     "cups-pk-helper"
@@ -263,11 +168,7 @@ def wm-install [] {
     "xdg-desktop-portal-wlr"
   ]
 
-  if not (has-cmd pipx) {
-    main uv
-  }
-
-  log+ "Installing pywal packages"
+  log info "Installing pywal packages"
   ^pipx install pywal
   ^pipx install pywalfox
 
@@ -283,17 +184,17 @@ def "main niri install" [] {
   wm-install
 
   if (has-cmd dms) and (has-cmd niri) {
-    log+ "niri and dms are already installed"
+    log info "niri and dms are already installed"
     return
   }
 
-  log+ "Installing niri and dms..."
+  log info "Installing niri and dms..."
   ^sudo dnf copr enable avengemedia/dms
   si ["niri" "dms" "cliphist"]
 }
 
 def "main niri config" [] {
-  log+ "Setting up niri config..."
+  log info "Setting up niri config..."
   stow-package "niri"
 
   let niri_dms = ($env.HOME | path join ".config/niri/dms")
@@ -312,7 +213,7 @@ def "main flatpaks" [] {
     si ["flatpak"]
   }
 
-  log+ "Adding flathub remote..."
+  log info "Adding flathub remote..."
   ^flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo --user
 
   let flatpaks = [
@@ -320,27 +221,27 @@ def "main flatpaks" [] {
   ]
 
   for pkg in $flatpaks {
-    log+ $"Installing ($pkg)"
+    log info $"Installing ($pkg)"
     do -i { ^flatpak --user install -y flathub $pkg }
   }
 }
 
 def "main virt config" [] {
-  log+ "Setting up libvirt..."
+  log info "Setting up libvirt..."
 
   for group in ["libvirt" "qemu" "libvirt-qemu" "kvm" "libvirtd"] {
     do -i { ^sudo usermod -aG $group $env.USER }
   }
 
-  log+ "Enabling libvirtd service..."
+  log info "Enabling libvirtd service..."
   do -i { ^sudo systemctl enable --now libvirtd }
   do -i { ^sudo virsh net-autostart default }
-  log+ "Enabling authselect with-libvirt feature..."
+  log info "Enabling authselect with-libvirt feature..."
   do -i { ^sudo authselect enable-feature with-libvirt }
 }
 
 def "main virt install" [] {
-  log+ "Installing virt-manager..."
+  log info "Installing virt-manager..."
 
   si [
     "dnsmasq"
@@ -365,8 +266,14 @@ def "main virt" [] {
   main virt config
 }
 
+def "fish config" [] {
+  si ["fish"]
+  stow-package "fish"
+  do -i { ^sudo chsh -s /usr/bin/fish $env.USER }
+}
+
 def "main desktop" [] {
-  log+ "Installing desktop packages..."
+  log info "Installing desktop packages..."
   si [
     "distrobox"
     "flatpak"
@@ -384,19 +291,10 @@ def "main help" [] {
   print "  setup.nu help"
   print "  setup.nu <command>"
   print ""
-  print "Running without a command performs the full setup:"
-  print "  update -> shell -> desktop"
-  print ""
   print "Commands:"
   print "  help             Show this help message"
-  print "  update           Update system packages with dnf"
-  print "  shell            Run shell setup (system, home-manager, uv)"
   print "  desktop          Run desktop setup (virt, flatpaks, niri)"
   print ""
-  print "  nix              Install nix package manager"
-  print "  home-manager     Apply the home-manager flake"
-  print "  system           Install base Fedora packages"
-  print "  uv               Install uv and pipx"
   print "  vscode           Install vscode and extensions"
   print "  vscode install   Install vscode only"
   print "  vscode config    Install vscode extensions/settings only"
@@ -413,7 +311,7 @@ def "main help" [] {
 }
 
 def "main update" [] {
-  log+ "Updating packages..."
+  log info "Updating packages..."
   ^sudo dnf update -y
 }
 
@@ -422,10 +320,7 @@ def main [] {
     die "Only Fedora supported. Quitting."
   }
 
-  let job_id = keep-sudo-alive
   bootstrap
   main update
-  main shell
   main desktop
-  stop-sudo-alive $job_id
 }

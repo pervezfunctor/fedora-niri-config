@@ -11,10 +11,12 @@ die() {
   exit 1
 }
 
-readonly REPO_URL="https://github.com/pervezfunctor/fedora-nix-niri-config.git"
-readonly DOT_DIR="$HOME/.local/share/fedora-nix-niri-config"
+readonly REPO_URL="https://github.com/pervezfunctor/fedora-niri-config.git"
+readonly DOT_DIR="$HOME/.local/share/fedora-niri-config"
 
-dotfiles_clone() {
+dotfiles_install() {
+  has_cmd git || die "git not found. Quitting."
+
   [ -d "$DOT_DIR" ] || {
     echo "Cloning dotfiles to $DOT_DIR."
     git clone "$REPO_URL" "$DOT_DIR" || die "Failed to clone $REPO_URL"
@@ -30,26 +32,32 @@ dotfiles_clone() {
   }
 }
 
+system_install() {
+  sudo dnf update -y || die "Failed to update packages"
+  sudo dnf install -y git gcc pipx libatomic make plocate tar unzip zstd ||
+    die "Failed to install dependencies"
+}
+
+pixi_install() {
+  has_cmd pixi || {
+    echo "pixi is not installed. Installing pixi."
+    curl -fsSL https://get.pixi.run | bash
+    has_cmd pixi || die "Failed to install pixi"
+  }
+
+  pixi global install bash-language-server bat bottom carapace direnv duf eza \
+    fd fzf gdu gh go-gum go-shfmt imagemagick jq just lazygit mask nushell xh \
+    ripgrep shellcheck tealdeer tectonic television tmuxp trash-cli yazi \
+    zoxide starship
+}
+
 main() {
-  has_cmd dnf && {
-    sudo dnf update -y || die "Failed to update packages"
-    sudo dnf install -y curl git fish || die "Failed to install dependencies"
-  }
-  has_cmd git || die "Failed to install git"
-  has_cmd curl || die "Failed to install curl"
+  has_cmd dnf || die "only fedora supported. Quitting."
 
-  has_cmd nix || {
-    echo "Nix is not installed. Installing Nix."
-    curl -fsSL https://install.determinate.systems/nix | sh -s -- install --determinate --no-confirm || die "Failed to install Nix"
-    # shellcheck disable=SC1091
-    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh || die "Failed to source Nix profile"
-    has_cmd nix || die "Nix installation failed"
-
-    nix run home-manager -- switch --flake "${DOT_DIR}/home-manager#$USER" --impure -b backup
-  }
-
-  has_cmd nu || die "Failed to install nushell"
-  dotfiles_clone
+  system_install
+  pixi_install
+  dotfiles_install
+  nu "${DOT_DIR}/setup.nu" fish config
 }
 
 main "$@"
