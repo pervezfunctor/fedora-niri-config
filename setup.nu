@@ -292,9 +292,6 @@ def "main flatpaks" [] {
 
   let flatpaks = [
     "com.github.tchx84.Flatseal"
-    "md.obsidian.Obsidian"
-    "org.gnome.Firmware"
-    "org.gnome.Papers"
   ]
 
   for pkg in $flatpaks {
@@ -327,6 +324,11 @@ def "main virt install" [] {
     "libvirt-nss"
     "qemu-img"
     "qemu-tools"
+    "libisoinfo"
+    "osinfo-db"
+    "osinfo-db-tools"
+    "libguestfs-tools"
+    "guestfs-tools"
     "swtpm"
     "virt-install"
     "virt-manager"
