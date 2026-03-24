@@ -5,13 +5,10 @@ if test -f ~/.fish_profile
   source ~/.fish_profile
 end
 
-set -gx DOT_DIR $HOME/.local/share/linux-config
+set -gx DOT_DIR $HOME/.local/share/fedora-niri-config
 set -gx XDG_DATA_DIRS $HOME/.local/share/flatpak/exports/share $XDG_DATA_DIRS
-set -gx MANPATH $NPM_PACKAGES/share/man $MANPATH
-
 
 fish_add_path --global --move \
-    /home/linuxbrew/.linuxbrew/bin \
     $HOME/.local/share/flatpak/exports/bin \
     $DOT_DIR \
     $HOME/.pixi/bin \
