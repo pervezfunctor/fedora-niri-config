@@ -266,7 +266,7 @@ def "main virt" [] {
   main virt config
 }
 
-def "fish config" [] {
+def "main fish config" [] {
   si ["fish"]
   stow-package "fish"
   do -i { ^sudo chsh -s /usr/bin/fish $env.USER }
