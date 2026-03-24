@@ -95,7 +95,7 @@ export def group-add [group: string] {
 }
 
 export def si [packages: list<string>]: nothing -> bool {
-  log+ $"Installing ($packages | str join ' ')"
+  log+ $"Installing packages"
   do -i { ^sudo dnf install -y ...$packages }
 }
 
@@ -179,16 +179,6 @@ def "main system" [] {
   do -i { ^sudo updatedb }
 }
 
-def "main bun" [] {
-  if (has-cmd bun) {
-    log+ "bun already installed. Skipping."
-    return
-  }
-
-  log+ "Installing bun..."
-  curl -fsSL https://bun.com/install | bash
-}
-
 def "main uv" [] {
   if not (has-cmd uv) {
     log+ "Installing uv..."
@@ -208,7 +198,6 @@ def "main shell" [] {
   main system
   main home-manager
   main uv
-  main bun
 }
 
 def "main stow" [package: string] {
@@ -401,13 +390,12 @@ def "main help" [] {
   print "Commands:"
   print "  help             Show this help message"
   print "  update           Update system packages with dnf"
-  print "  shell            Run shell setup (system, home-manager, uv, bun)"
+  print "  shell            Run shell setup (system, home-manager, uv)"
   print "  desktop          Run desktop setup (virt, flatpaks, niri)"
   print ""
   print "  nix              Install nix package manager"
   print "  home-manager     Apply the home-manager flake"
   print "  system           Install base Fedora packages"
-  print "  bun              Install bun"
   print "  uv               Install uv and pipx"
   print "  vscode           Install vscode and extensions"
   print "  vscode install   Install vscode only"
