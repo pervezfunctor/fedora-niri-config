@@ -18,7 +18,7 @@ export def die [msg: string] {
 export def ensure-parent-dir [path: string] {
   let parent = ($path | path dirname)
   if not (dir-exists $parent) {
-    log info "creating directory: $parent"
+    log info $"creating directory: $parent"
     mkdir $parent
   }
 }
