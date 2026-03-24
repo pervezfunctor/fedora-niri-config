@@ -31,6 +31,11 @@ export def dir-exists [path: string]: nothing -> bool {
   ($path | path exists) and ($path | path type) == "dir"
 }
 
+def file-or-link-exists [p: path] {
+    let t = ($p | path type)
+    $t == "file" or $t == "symlink"
+}
+
 export def is-fedora []: nothing -> bool {
   if not ("/etc/redhat-release" | path exists) { return false }
   let content = (open /etc/redhat-release | str downcase)
@@ -43,9 +48,12 @@ export def sln [src: string, dst: string] {
     return
   }
 
-  if ($dst | path exists) {
-    log info "$dst already exists, removing"
-    if (has-cmd trash) { ^trash $dst } else { rm -f $dst }
+  if (file-or-link-exists $dst) {
+    if (has-cmd trash) {
+      ^trash $dst
+    } else {
+      rm -f $dst
+    }
   }
 
   log info "linking $src -> $dst"
@@ -125,10 +133,10 @@ def "main vscode config" [] {
     "TheNuProjectContributors.vscode-nushell-lang"
   ]
 
-  log info "Installing vscode extensions"
-  for ext in $extensions {
-    do -i { ^code --install-extension $ext }
-  }
+  # log info "Installing vscode extensions"
+  # for ext in $extensions {
+  #   do -i { ^code --install-extension $ext }
+  # }
 
   stow-package "Code"
 }
