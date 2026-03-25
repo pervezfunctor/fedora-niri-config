@@ -4,8 +4,8 @@
 
 Run the bootstrap script:
 
-```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-niri-config/main/setup)"
+```sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fedora-niri-config/main/setup)"
 ```
 
 The bootstrap script clones the repo to `~/.local/share/fedora-niri-config`, installs pixi and configures shell.
@@ -14,13 +14,13 @@ The bootstrap script clones the repo to `~/.local/share/fedora-niri-config`, ins
 
 After the repo is available locally, run the Nushell entrypoint directly:
 
-```bash
+```sh
 setup.nu
 ```
 
 Available commands include:
 
-```bash
+```sh
 nu setup.nu help
 nu setup.nu niri
 nu setup.nu flatpaks
@@ -37,7 +37,7 @@ nu setup.nu virt
 
 Example:
 
-```bash
+```sh
 nu setup.nu stow niri
 ```
 
