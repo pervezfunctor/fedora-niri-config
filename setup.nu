@@ -28,10 +28,12 @@ export def has-cmd [cmd: string]: nothing -> bool {
 }
 
 export def dir-exists [path: string]: nothing -> bool {
-  ($path | path exists) and ($path | path type) == "dir"
+  if not ($path | path exists) { return false }
+  ($path | path type) == "dir"
 }
 
-def file-or-link-exists [p: path] {
+def file-or-link-exists [p: path]: nothing -> bool {
+    if not ($p | path exists) { return false }
     let t = ($p | path type)
     $t == "file" or $t == "symlink"
 }
@@ -44,7 +46,7 @@ export def is-fedora []: nothing -> bool {
 
 export def sln [src: string, dst: string] {
   if not (($src | path exists) and (($src | path type) != "dir")) {
-    log error $"($src) does not exist. Skipping linking."
+    log error $"($src) does not exist or is a directory. Skipping linking."
     return
   }
 
@@ -63,7 +65,7 @@ export def sln [src: string, dst: string] {
 export def "main stow" [package: string] {
   let root = (($env.DOT_DIR | path join $package) | path expand)
 
-  for $f in (glob $"($root)/**/*" --no-dir) {
+  for f in (glob $"($root)/**/*" --no-dir) {
     let src = ($f | path expand)
     let rel = ($src | path relative-to $root)
     let dst = ($env.HOME | path join ".config" $package $rel)
@@ -72,7 +74,7 @@ export def "main stow" [package: string] {
   }
 }
 
-export def group-add [group: string] {
+def group-add [group: string] {
   let groups_output = (^getent group | lines)
   let group_names = ($groups_output | parse "{name}:x:{gid}:{members}" | get name)
 
@@ -84,7 +86,7 @@ export def group-add [group: string] {
   }
 }
 
-export def si [packages: list<string>]: nothing -> bool {
+export def si [packages: list<string>] {
   log info "Installing packages"
   do -i { ^sudo dnf install -y ...$packages }
 }
@@ -118,7 +120,7 @@ def "main vscode install" [] {
 
   if not (has-cmd code) {
     log info "Installing vscode"
-    dnf check-update
+    do -i { ^dnf check-update }
     si ["code"]
   }
 }
@@ -201,7 +203,7 @@ def "main niri install" [] {
   }
 
   log info "Installing niri and dms"
-  ^sudo dnf copr enable avengemedia/dms
+  ^sudo dnf copr enable -y avengemedia/dms
   si ["niri" "dms" "cliphist"]
 }
 
@@ -242,7 +244,7 @@ def "main virt config" [] {
   log info "Setting up libvirt"
 
   for group in ["libvirt" "qemu" "libvirt-qemu" "kvm" "libvirtd"] {
-    do -i { ^sudo usermod -aG $group $env.USER }
+    group-add $group
   }
 
   log info "Enabling libvirtd service"
