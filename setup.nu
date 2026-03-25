@@ -60,7 +60,7 @@ export def sln [src: string, dst: string] {
   ^ln -s $src $dst
 }
 
-export def stow-package [package: string] {
+export def "main stow" [package: string] {
   let root = (($env.DOT_DIR | path join $package) | path expand)
 
   for $f in (glob $"($root)/**/*" --no-dir) {
@@ -102,22 +102,20 @@ export def touch-files [dir: string, files: list<string>] {
 }
 
 def --env bootstrap [] {
-  path add "/nix/var/nix/profiles/default/bin"
+  path add $env.DOT_DIR
 
   for p in [
     "bin"
+    ".pixi/bin"
     ".local/bin"
-    $"($env.DOT_DIR)/nu"
   ] {
-    path add ($env.HOME | path join $p | path expand)
+    path add ($env.HOME | path join $p)
   }
 }
 
-def "main stow" [package: string] {
-  stow-package $package
-}
-
 def "main vscode install" [] {
+  main fonts
+
   if not (has-cmd code) {
     log info "Installing vscode"
     dnf check-update
@@ -138,7 +136,11 @@ def "main vscode config" [] {
     do -i { ^code --install-extension $ext }
   }
 
-  stow-package "Code"
+  main stow "Code"
+}
+
+def "main fonts" [] {
+  si ["cascadia-mono-nf-fonts" "cascadia-code-nf-fonts"]
 }
 
 def "main vscode" [] {
@@ -147,12 +149,14 @@ def "main vscode" [] {
 }
 
 def wm-install [] {
+  main fonts
   log info "Installing window manager packages"
   si [
     "adw-gtk3-theme"
     "cups-pk-helper"
-    "grim"
     "gvfs"
+    "gnome-keyring"
+    "grim"
     "gvfs-fuse"
     "gvfs-smb"
     "imv"
@@ -184,8 +188,8 @@ def wm-install [] {
   do -i { mkdir $"($pictures)/Screenshots" }
   do -i { mkdir $"($pictures)/Wallpapers" }
 
-  stow-package "kitty"
-  stow-package "xdg-desktop-portal"
+  main stow "kitty"
+  main stow "xdg-desktop-portal"
 }
 
 def "main niri install" [] {
@@ -203,7 +207,7 @@ def "main niri install" [] {
 
 def "main niri config" [] {
   log info "Setting up niri config"
-  stow-package "niri"
+  main stow "niri"
 
   let niri_dms = ($env.HOME | path join ".config/niri/dms")
   touch-files $niri_dms ["alttab.kdl" "colors.kdl" "layout.kdl" "wpblur.kdl" "binds.kdl" "cursor.kdl" "outputs.kdl"]
@@ -270,24 +274,18 @@ def "main virt install" [] {
 }
 
 def "main virt" [] {
+  si ["distrobox"]
   main virt install
   main virt config
 }
 
 def "main fish" [] {
   si ["fish"]
-  stow-package "fish"
+  main stow "fish"
   do -i { ^sudo chsh -s /usr/bin/fish $env.USER }
 }
 
 def "main desktop" [] {
-  log info "Installing desktop packages"
-  si [
-    "distrobox"
-    "flatpak"
-    "gnome-keyring"
-  ]
-
   main virt
   main flatpaks
   main niri
