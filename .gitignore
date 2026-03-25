@@ -9,3 +9,4 @@ node_modules/
 .config/kitty/local.conf
 scratch.*
 telemetry-id
+.claude/

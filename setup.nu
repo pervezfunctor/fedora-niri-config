@@ -183,6 +183,7 @@ def wm-install [] {
   ]
 
   log info "Installing pywal packages"
+  if not (has-cmd pipx) { si ["pipx"] }
   ^pipx install pywal
   ^pipx install pywalfox
 
@@ -241,6 +242,11 @@ def "main flatpaks" [] {
 }
 
 def "main virt config" [] {
+  if not (has-cmd virsh) {
+    log error "install libvirt first with `setup.nu virt install`"
+    return
+  }
+
   log info "Setting up libvirt"
 
   for group in ["libvirt" "qemu" "libvirt-qemu" "kvm" "libvirtd"] {
@@ -251,7 +257,11 @@ def "main virt config" [] {
   do -i { ^sudo systemctl enable --now libvirtd }
   do -i { ^sudo virsh net-autostart default }
   log info "Enabling authselect with-libvirt feature"
-  do -i { ^sudo authselect enable-feature with-libvirt }
+  do -i {
+    if (has-cmd authselect) {
+      ^sudo authselect enable-feature with-libvirt
+    }
+  }
 }
 
 def "main virt install" [] {
@@ -324,11 +334,18 @@ def "main update" [] {
   ^sudo dnf update -y
 }
 
-def main [] {
+def checks [] {
+  if (has-cmd rpm-ostree) {
+    die "fedora atomic not supported. Quitting."
+  }
+  if not (has-cmd trash) { si ["trash-cli"] }
   if not (is-fedora) {
     die "Only Fedora supported. Quitting."
   }
+}
 
+def main [] {
+  checks
   bootstrap
   main update
   main desktop
