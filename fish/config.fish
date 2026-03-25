@@ -6,6 +6,9 @@ if test -f ~/.fish_profile
 end
 
 set -gx DOT_DIR $HOME/.local/share/fedora-niri-config
+if not set -q XDG_DATA_DIRS
+    set -gx XDG_DATA_DIRS /usr/local/share /usr/share
+end
 set -gx XDG_DATA_DIRS $HOME/.local/share/flatpak/exports/share $XDG_DATA_DIRS
 
 fish_add_path --global --move \
