@@ -476,7 +476,7 @@ gnome_gdm() {
     gdm
     gnome-extensions-app
     gnome-power-manager
-    gnome-gnome-control-center
+    gnome-control-center
     gnome-system-monitor
     gnome-disk-utility
     papers
