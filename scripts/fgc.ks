@@ -8,53 +8,32 @@
 #   or:
 #     inst.ks=http://example.com/fgc.ks
 
-# Use text mode install
 text
 
-# System language
 lang en_US.UTF-8
-
-# Keyboard
 keyboard us
-
-# Timezone
-timezone Asia/Kolkata --isUtc
-
-# Root password (CHANGE THIS)
-rootpw --lock
-
-# User (CHANGE THIS)
-user --name=pervez --groups=wheel --iscrypted --password=
-
-# SELinux
+timezone Asia/Kolkata
 selinux --enforcing
-
-# Firewall
 firewall --enabled --service=ssh
-
-# Services
 services --enabled=sshd,gdm
-
-# Network
 network --hostname=fgc
+firstboot --enable
+reboot --eject
 
-# Bootloader
-bootloader --location=mbr --append="quiet rhgb"
-
-# Partitioning (CHANGE THIS - use autopart or custom)
-autopart --type=lvm
-
-# Skip X configuration
 skipx
 
 %packages --ignoremissing
-# Base system
-@standard
-@base-x
-@gnome
+# # Base system
+# @standard
+# @base-x
+# @gnome
+@^gnome-desktop-environment
+@base
+@core
+@workstation-product
 @development-tools
+@virtualization
 
-# From shell_packages_install (COMMON_PACKAGES)
 bat
 difftastic
 duf
@@ -77,8 +56,6 @@ trash-cli
 ugrep
 yq
 zoxide
-
-# From shell_packages_install (system deps)
 git
 which
 curl
@@ -94,13 +71,8 @@ zip
 unzip
 zstd
 
-# From gnome_gdm
-gdm
-gnome-extensions-app
-gnome-power-manager
-gnome-control-center
-gnome-system-monitor
-gnome-disk-utility
+cascadia-code-nf-fonts
+cascadia-mono-nf-fonts
 papers
 imv
 mpv
