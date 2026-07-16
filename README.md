@@ -26,7 +26,9 @@ Restart your terminal and execute the following script. This install shell tools
 fgc shell
 ```
 
-Reboot your computer and open terminal. You should be in fish shell.
+Reboot your computer and open terminal. You should be in fish shell. On atomic fedora(silverblue/bluefin) use `ptyxis` terminal.
+
+On non atomic fedora, use the following command to check your shell.
 
 ```sh
 echo $SHELL
@@ -40,21 +42,44 @@ chsh -s $(which fish)
 
 ## Development Tools
 
-Install node(vite+), Rust(rustup), Python(uv).
+Install node(vite+), Rust(rustup), Python(uv) tools.
 
 ```sh
 fgc dev
 ```
 
-Install and setup your preferred editor
+Install and setup your preferred editor,
+
+For zed editor
 
 ```sh
 fgc zed
 ```
 
+For
+
 ```sh
 fgc vscode
 ```
+
+## Gnome setup
+
+To setup gnome almost like niri, and use scrolling layout(paperwm), use the following script
+
+```sh
+setup gnome
+```
+
+Some important keybindings
+
+- Open Terminal - Super+Return
+- Pick Predefined Size - Super+R (This is super important)
+- Center Window - Super+C (Super important)
+- Close Window - Super+Q
+- Switch Focus - Super+<Arrow Key>
+- Move Window - Super+Shift+<Arrow Key>
+- Switch Workspace - Super+Page_Up/Page_Down
+- Move Window to Workspace - Super+Shift+Page_Up/Page_Down
 
 ## Virtual Machines
 
@@ -91,30 +116,13 @@ For additional commands
 vm help
 ```
 
-If you prefer `virt-manager` for installing desktop linux distributions, install with dnf and restart your computer.
+If you prefer `virt-manager` for installing desktop linux distributions, install with dnf(on non-atomic fedora) and restart your computer.
 
 ```sh
 sudo dnf install -y virt-manager
 ```
 
-## Gnome setup
-
-To setup gnome almost like niri, and use scrolling layout(paperwm), use the following script
-
-```sh
-setup gnome
-```
-
-Some important keybindings
-
-- Open Terminal - Super+Return
-- Pick Predefined Size - Super+R (This is super important)
-- Center Window - Super+C (Super important)
-- Close Window - Super+Q
-- Switch Focus - Super+<Arrow Key>
-- Move Window - Super+Shift+<Arrow Key>
-- Switch Workspace - Super+Page_Up/Page_Down
-- Move Window to Workspace - Super+Shift+Page_Up/Page_Down
+Bluefin dx already includes `virt-manager`.
 
 ## Bluefin
 
@@ -139,3 +147,5 @@ You could setup your shell with
 ```sh
 ujust bluefin-cli
 ```
+
+bootstrap script should work with `Bluefin` too. You will have access to most scripts after bootstrap.
