@@ -11,12 +11,12 @@ sudo dnf update -y --refresh
 
 On Bluefin
 ```sh
-ujust update # bluefin
+ujust update
 ```
 
 On Silverblue
 ```sh
-sudo rpm-ostree upgrade # silverblue
+sudo rpm-ostree upgrade
 ```
 
 Then run the following bootstrap script
