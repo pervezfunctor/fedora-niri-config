@@ -121,7 +121,7 @@ verify_installation() {
 main() {
   log "Starting Homebrew installation"
 
-  has_cmd git
+  has_cmd git || die "git is not installed."
 
   local user_name
   user_name=$(get_user_info)

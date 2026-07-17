@@ -29,7 +29,7 @@ is_silverblue() {
 
   # shellcheck disable=SC1091
   . /etc/os-release
-  [[ "${ID:-}" =~ .*[Ss]ilverblue.* ]] || [[ "${PRETTY_NAME:-}" =~ .*[Ss]ilverblue.* ]]
+  [[ "${VARIANT_ID,,:-}" =~ silverblue ]] || [[ "${ID,,:-}" =~ silverblue ]] || [[ "${PRETTY_NAME,,:-}" =~ silverblue ]]
 }
 
 is_bluefin() {
@@ -73,12 +73,14 @@ brew_install() {
 
   log "Installing Homebrew..."
   if is_silverblue; then
+    [ -x "$DOT_DIR/scripts/homebrew-atomic" ] || die "homebrew-atomic script not found"
     "$DOT_DIR/scripts/homebrew-atomic"
   else
     has_cmd curl || die "curl not installed, quitting."
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
+  has_cmd /home/linuxbrew/.linuxbrew/bin/brew || die "Homebrew installation failed"
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
   brew tap ublue-os/tap
@@ -118,6 +120,7 @@ copy_file() {
   ensure_parent_dir "$target"
 
   if [ -e "$target" ] || [ -L "$target" ]; then
+    has_cmd trash || die "trash is not installed. Quitting."
     log "Trashing existing $target, restore with 'trash-restore'"
     trash "$target" 2>/dev/null || true
   fi
@@ -458,8 +461,11 @@ gnome_ptyxis() {
   gnome_ptyxis_theme
 
   if is_atomic; then
-    local fl="$HOME/.pixi/bin/fish"
-    gsettings set "$profile" custom-command "'$fl'"
+    local fish_path
+    fish_path=$(command -v fish || true)
+    if [ -n "$fish_path" ]; then
+      gsettings set "$profile" custom-command "'$fish_path'"
+    fi
   fi
 }
 
@@ -592,21 +598,25 @@ cmd_dev_vp() {
 }
 
 cmd_dev_ai() {
-  has_cmd npm || cmd_dev_vp
+  if ! has_cmd opencode; then
+    log "Installing opencode CLI"
+    curl -fsSL https://opencode.ai/install | bash
+  fi
 
-  local npm_pkgs=(
-    "opencode-ai"
-    "@openai/codex"
-    "@augmentcode/auggie"
-  )
+  if ! has_cmd codex; then
+    log "Installing codex CLI"
+    curl -fsSL https://chatgpt.com/codex/install.sh | sh
+  fi
 
-  log "Installing npm packages"
-  for pkg in "${npm_pkgs[@]}"; do
-    vp install -g "$pkg"
-  done
+  if ! has_cmd antigravity; then
+    log "Installing antigravity CLI"
+    curl -fsSL https://antigravity.google/cli/install.sh | bash || true
+  fi
 
-  # antigravity cli
-  curl -fsSL https://antigravity.google/cli/install.sh | bash
+  if ! has_cmd claude; then
+    log "Installing claude code CLI"
+    curl -fsSL https://claude.ai/install.sh | bash
+  fi
 }
 
 cmd_dev() {
@@ -743,6 +753,11 @@ main() {
   export PATH="/home/linuxbrew/.linuxbrew/bin:$DOT_DIR/scripts:$HOME/.vite-plus/bin:$HOME/bin:$HOME/.pixi/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
   is_fedora || is_atomic || die "Only Fedora/Bluefin/Silverblue supported. Quitting."
+  if is_bleufin; then
+    if ! has_cmd brew; then
+      die "On bluefin, brew is not installed. Quitting. Rebase to DX"
+    fi
+  fi
 
   local cmd=""
   local cmd_args=()

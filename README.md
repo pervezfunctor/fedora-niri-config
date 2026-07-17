@@ -37,7 +37,7 @@ echo $SHELL
 If fish shell is not the default, use the following command.
 
 ```sh
-chsh -s $(which fish)
+chsh -s $(command -v fish)
 ```
 
 ## Development Tools

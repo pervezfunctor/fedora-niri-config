@@ -162,6 +162,12 @@ cmd_tumbleweed() {
   launch_vm "images:opensuse/tumbleweed/cloud" "$name" "$ssh_key" "sshd"
 }
 
+cmd_arch() {
+  local name="${1:-arch}"
+  local ssh_key="${2:-}"
+  launch_vm "images:archlinux/current/cloud" "$name" "$ssh_key" "sshd"
+}
+
 cmd_ssh() {
   local name="$1"
   local ip
@@ -192,8 +198,7 @@ cmd_destroy() {
 
 cmd_install_post() {
   log_info "Initializing incus admin with $INCUS_CONFIG"
-  incus admin init
-  # incus admin init --preseed <"$INCUS_CONFIG" || true
+  incus admin init --preseed <"$INCUS_CONFIG" || true
 }
 
 cmd_start() {
@@ -226,6 +231,7 @@ Commands:
   ubuntu          Create an Ubuntu VM with cloud-init
   fedora          Create a Fedora VM with cloud-init
   tumbleweed      Create an openSUSE Tumbleweed VM with cloud-init
+  arch            Create an Arch Linux VM with cloud-init
 
   ssh <name>      SSH into a VM instance
   destroy <name>  Stop and delete a VM instance
@@ -271,6 +277,9 @@ install)
     ;;
   tumbleweed)
     cmd_tumbleweed "${2:-tumbleweed}" "${3:-}"
+    ;;
+  arch)
+    cmd_arch "${2:-arch}" "${3:-}"
     ;;
   ssh)
     cmd_ssh "${2:?VM name required}"

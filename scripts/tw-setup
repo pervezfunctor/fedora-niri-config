@@ -99,19 +99,21 @@ dotfiles_install() {
   fi
 }
 
-fish_install() {
+fish_config() {
   log "Configuring fish shell..."
 
   log "Setting fish as default shell..."
-  if sudo chsh -s "$(which fish)" "$USER"; then
+  if sudo chsh -s "$(command -v fish)" "$USER"; then
     log "Successfully set fish as default shell"
   else
     log "Failed to set fish as default shell"
-    log "Run 'sudo chsh -s $(which fish) $USER' to set it manually"
+    log "Run 'sudo chsh -s $(command -v fish) $USER' to set it manually"
   fi
 
   log "Deploying fish config..."
-  trash ~/.config/fish/config.fish 2>/dev/null || true
+  if [ -e ~/.config/fish/config.fish ] && command -v trash &>/dev/null; then
+    trash ~/.config/fish/config.fish 2>/dev/null || true
+  fi
   mkdir -p ~/.config/fish 2>/dev/null || true
   log "Creating link from ~/.fgc/fish/config.fish to ~/.config/fish/config.fish"
   ln -sf ~/.fgc/fish/config.fish ~/.config/fish/config.fish
@@ -153,7 +155,7 @@ main() {
     log "Starting tumbleweed shell setup..."
     system_install
     dotfiles_install
-    fish_install
+    fish_config
     log "tumbleweed installation complete."
     return
   fi
