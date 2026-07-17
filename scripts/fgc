@@ -753,7 +753,7 @@ main() {
   export PATH="/home/linuxbrew/.linuxbrew/bin:$DOT_DIR/scripts:$HOME/.vite-plus/bin:$HOME/bin:$HOME/.pixi/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
   is_fedora || is_atomic || die "Only Fedora/Bluefin/Silverblue supported. Quitting."
-  if is_bleufin; then
+  if is_bluefin; then
     if ! has_cmd brew; then
       die "On bluefin, brew is not installed. Quitting. Rebase to DX"
     fi
