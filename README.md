@@ -4,9 +4,18 @@
 
 First, update your system and reboot your computer. This will save a lot of time, when executing the following scripts.
 
+On Fedora Workstation
 ```sh
-sudo dnf update -y --refresh # fedora workstation
+sudo dnf update -y --refresh
+```
+
+On Bluefin
+```sh
 ujust update # bluefin
+```
+
+On Silverblue
+```sh
 sudo rpm-ostree upgrade # silverblue
 ```
 
