@@ -29,7 +29,8 @@ is_silverblue() {
 
   # shellcheck disable=SC1091
   . /etc/os-release
-  [[ "${VARIANT_ID,,:-}" =~ silverblue ]] || [[ "${ID,,:-}" =~ silverblue ]] || [[ "${PRETTY_NAME,,:-}" =~ silverblue ]]
+  local variant_id="${VARIANT_ID-}" id="${ID-}" pretty_name="${PRETTY_NAME-}"
+  [[ "${variant_id,,}" =~ silverblue ]] || [[ "${id,,}" =~ silverblue ]] || [[ "${pretty_name,,}" =~ silverblue ]]
 }
 
 is_bluefin() {
@@ -37,7 +38,8 @@ is_bluefin() {
 
   # shellcheck disable=SC1091
   . /etc/os-release
-  [[ "${ID,,}" =~ .*bluefin.* ]] || [[ "${PRETTY_NAME,,}" =~ .*bluefin.* ]] || [[ "${NAME,,}" =~ .*bluefin.* ]]
+  local id="${ID-}" pretty_name="${PRETTY_NAME-}" name="${NAME-}"
+  [[ "${id,,}" =~ .*bluefin.* ]] || [[ "${pretty_name,,}" =~ .*bluefin.* ]] || [[ "${name,,}" =~ .*bluefin.* ]]
 }
 
 is_atomic() {
@@ -47,7 +49,7 @@ is_atomic() {
 is_fedora() {
   has_cmd dnf || return 1
   [ -f /etc/redhat-release ] || return 1
-  grep -qi fedora /etc/redhat-release
+  grep -qiE 'fedora|centos' /etc/redhat-release
 }
 
 dotfiles_install() {
@@ -752,7 +754,7 @@ cmd_brew() {
 main() {
   export PATH="/home/linuxbrew/.linuxbrew/bin:$DOT_DIR/scripts:$HOME/.vite-plus/bin:$HOME/bin:$HOME/.pixi/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
-  is_fedora || is_atomic || die "Only Fedora/Bluefin/Silverblue supported. Quitting."
+  is_fedora || is_atomic || die "Only Fedora/CentOS/Bluefin/Silverblue supported. Quitting."
   if is_bluefin; then
     if ! has_cmd brew; then
       die "On bluefin, brew is not installed. Quitting. Rebase to DX"
