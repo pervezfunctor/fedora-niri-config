@@ -5,16 +5,19 @@
 First, update your system and reboot your computer. This will save a lot of time, when executing the following scripts.
 
 On Fedora Workstation
+
 ```sh
 sudo dnf update -y --refresh
 ```
 
 On Bluefin
+
 ```sh
 ujust update
 ```
 
 On Silverblue
+
 ```sh
 sudo rpm-ostree upgrade
 ```
@@ -76,7 +79,7 @@ fgc vscode
 To setup gnome almost like niri, and use scrolling layout(paperwm), use the following script
 
 ```sh
-setup gnome
+fgc gnome
 ```
 
 Some important keybindings
