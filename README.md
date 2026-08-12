@@ -128,13 +128,38 @@ For additional commands
 vm help
 ```
 
-If you prefer `virt-manager` for installing desktop linux distributions, install with dnf(on non-atomic fedora) and restart your computer.
+If you prefer `virt-manager` for installing desktop linux distributions, install libvirt with
 
 ```sh
-sudo dnf install -y virt-manager
+fgc libvirt
 ```
 
+This installs the `@virtualization` group (libvirt, qemu-kvm, virt-manager, virt-viewer), adds your user to the `libvirt` group (passwordless `qemu:///system` via polkit), enables `libvirtd`, and starts the `default` NAT network. Reboot your computer afterwards.
+
+To run VMs as LAN peers (getting an IP directly from your router), also set up a host bridge. This enslaves your primary ethernet (e.g. `enp4s0`) under a `br0` bridge and moves the host IP onto it — your network will drop briefly during the switch.
+
+```sh
+sudo nmcli connection add type bridge ifname br0 con-name br0
+sudo nmcli connection add type bridge-slave ifname enp4s0 master br0
+sudo nmcli connection up br0
+```
+
+To revert the bridge: `sudo nmcli connection delete br0 && sudo nmcli connection up "Wired connection 1"` (use your original connection name).
+
 Bluefin dx already includes `virt-manager`.
+
+### Debian cloud VM (bridged)
+
+`debian-libvirt-vm` creates a Debian 13 (trixie) VM on `qemu:///system`, bridged to the LAN, using virt-install + cloud-init + the Debian cloud image (UEFI, serial console). Disks are libvirt-managed volumes (correct `qemu:qemu` ownership and SELinux labels). Requires `fgc libvirt`, a host bridge named `br0`, then a reboot. The `default` storage pool is created automatically on first run.
+
+```sh
+debian-libvirt-vm create                              # defaults: name=debian, 2 vcpu, 2G, 20G
+debian-libvirt-vm create --name build --cpus 4        # custom
+debian-libvirt-vm create --name big --memory 8192 --disk 50
+debian-libvirt-vm ssh debian                          # ssh in (uses the router-assigned IP)
+debian-libvirt-vm list
+debian-libvirt-vm destroy debian
+```
 
 ## Bluefin
 
