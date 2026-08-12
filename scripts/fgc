@@ -707,6 +707,33 @@ cmd_vscode() {
   esac
 }
 
+#####################
+### libvirt setup ###
+#####################
+
+libvirt_install() {
+  if is_atomic; then
+    die "libvirt installation is not supported on atomic systems. Bluefin dx already includes it."
+  fi
+
+  log "Installing @virtualization group (libvirt, qemu-kvm, virt-manager, etc)"
+  sudo dnf group install --with-optional virtualization
+
+  log "Adding user to libvirt group (passwordless qemu:///system via polkit)"
+  sudo usermod -aG libvirt "$USER" || true
+
+  log "Enabling libvirtd service"
+  sudo systemctl enable --now libvirtd || true
+
+  log "Starting and autostarting default network (virbr0 NAT)"
+  sudo virsh net-start default 2>/dev/null || true
+  sudo virsh net-autostart default 2>/dev/null || true
+}
+
+cmd_libvirt() {
+  libvirt_install
+}
+
 # Deploy command
 
 cmd_deploy() {
@@ -727,6 +754,7 @@ Commands:
   dev               Development tools (rust, uv, vp)
   zed               Install and configure Zed editor
   vscode            Install and configure vscode
+  libvirt           Install libvirt/virt-manager
   dotfiles          Clone dotfiles and bootstrap shell
   brew              Install Homebrew
   deploy            Deploy dotfiles
@@ -787,6 +815,7 @@ main() {
     gnome) cmd_gnome "${cmd_args[@]}" ;;
     dev) cmd_dev "${cmd_args[@]}" ;;
     vscode) cmd_vscode "${cmd_args[@]}" ;;
+    libvirt) cmd_libvirt "${cmd_args[@]}" ;;
     deploy) cmd_deploy "${cmd_args[@]}" ;;
     *)
       error "Unknown command: $cmd"
