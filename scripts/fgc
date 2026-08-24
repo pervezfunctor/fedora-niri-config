@@ -6,6 +6,7 @@ trap 'echo "ERROR rc=$? line=$LINENO cmd=$BASH_COMMAND" >&2' ERR
 
 readonly REPO_NAME="fgc"
 readonly DOT_DIR="$HOME/.${REPO_NAME}"
+readonly CUR_USER="${USER:-$(id -un)}"
 
 log() {
   printf "\033[1;34m🚀 %s\033[0m\n" "$*"
@@ -13,6 +14,10 @@ log() {
 
 error() {
   printf "\033[1;31m🔥 %s\033[0m\n" "$*" >&2
+}
+
+warn() {
+  printf "\033[1;33m⚠ %s\033[0m\n" "$*"
 }
 
 die() {
@@ -52,9 +57,36 @@ is_fedora() {
   grep -qiE 'fedora|centos' /etc/redhat-release
 }
 
+dotfiles_pull() {
+  if ! git -C "$DOT_DIR" rev-parse --is-inside-work-tree &>/dev/null; then
+    die "$DOT_DIR exists but is not a git repo."
+  fi
+
+  if [ -d "$DOT_DIR/.git/rebase-merge" ] || [ -d "$DOT_DIR/.git/rebase-apply" ]; then
+    die "Dotfiles repo is mid-rebase. Aborting."
+  fi
+
+  if [ -n "$(git -C "$DOT_DIR" status --porcelain)" ]; then
+    warn "Dotfiles repo dirty. Skipping update."
+    return 0
+  fi
+
+  log "Dotfiles repo clean. Pulling latest changes."
+  if ! git -C "$DOT_DIR" pull --rebase; then
+    warn "Rebase failed. Aborting."
+
+    if ! git -C "$DOT_DIR" rebase --abort; then
+      die "Failed to abort rebase. Repo may be in a broken state."
+    fi
+
+    log "Rebase aborted cleanly."
+  fi
+}
+
 dotfiles_install() {
   if [ -d "$DOT_DIR" ]; then
-    log "$DOT_DIR already exists. Skipping."
+    log "$DOT_DIR already exists. Updating."
+    dotfiles_pull
     return
   fi
 
@@ -156,7 +188,7 @@ deploy_config() {
 
 fish_install() {
   local fish_path
-  fish_path="$(command -v fish)"
+  fish_path="$(command -v fish || true)"
   if [ -z "$fish_path" ]; then
     error "fish executable not found"
     return
@@ -170,11 +202,11 @@ fish_install() {
   log "Setting fish as default shell..."
   if is_atomic; then
     log "Run 'setup gnome' to setup gnome and set fish as default in ptyxis"
-  elif sudo chsh -s "$fish_path" "$USER" 2>/dev/null; then
+  elif sudo chsh -s "$fish_path" "$CUR_USER" 2>/dev/null; then
     log "Successfully set fish as default shell"
   else
     error "Failed to set fish as default shell"
-    log "Run 'sudo chsh -s $fish_path $USER' to set it manually"
+    log "Run 'sudo chsh -s $fish_path $CUR_USER' to set it manually"
   fi
 
   deploy_config "fish"
@@ -243,7 +275,9 @@ fpi() {
 }
 
 gnome_flatpaks() {
-  has_cmd flatpak || sudo dnf install -y flatpak
+  if ! has_cmd flatpak && ! is_atomic; then
+    sudo dnf install -y flatpak
+  fi
   flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo --user
 
   local flatpaks=(
@@ -286,7 +320,7 @@ gnome_extensions() {
 
 get_profid() {
   local profid
-  profid="$(gsettings get org.gnome.Ptyxis default-profile-uuid | tr -d "'")"
+  profid="$(gsettings get org.gnome.Ptyxis default-profile-uuid 2>/dev/null | tr -d "'")" || true
   if [ -z "$profid" ]; then
     nohup ptyxis >/dev/null 2>&1 &
     disown
@@ -303,7 +337,7 @@ get_profid() {
 
 get_profile() {
   local profid
-  profid=$(get_profid)
+  profid="$(get_profid)" || true
   [ -z "$profid" ] && return 1
   echo "org.gnome.Ptyxis.Profile:/org/gnome/Ptyxis/Profiles/${profid}/"
 }
@@ -334,7 +368,11 @@ gnome_wallpaper() {
   fi
 
   mkdir -p ~/.config/wallpaper
-  curl -L --max-time 30 -o ~/.config/wallpaper/green_sea.jpg 'https://raw.githubusercontent.com/mylinuxforwork/wallpaper/main/green_sea.jpg'
+  if ! curl -fsSL --max-time 60 -o ~/.config/wallpaper/green_sea.jpg 'https://raw.githubusercontent.com/mylinuxforwork/wallpaper/main/green_sea.jpg'; then
+    rm -f ~/.config/wallpaper/green_sea.jpg
+    error "Failed to download wallpaper"
+    return
+  fi
 
   gsettings set org.gnome.desktop.background picture-uri "$HOME/.config/wallpaper/green_sea.jpg"
   gsettings set org.gnome.desktop.background picture-uri-dark "$HOME/.config/wallpaper/green_sea.jpg"
@@ -343,7 +381,7 @@ gnome_wallpaper() {
 
 gnome_ptyxis_theme() {
   local profile
-  profile="$(get_profile)"
+  profile="$(get_profile)" || true
   [ -z "$profile" ] && return
 
   gsettings set "$profile" opacity 0.85
@@ -459,13 +497,13 @@ gnome_ptyxis() {
   fi
 
   local profile
-  profile=$(get_profile)
+  profile="$(get_profile)" || true
   gnome_ptyxis_theme
 
   if is_atomic; then
     local fish_path
-    fish_path=$(command -v fish || true)
-    if [ -n "$fish_path" ]; then
+    fish_path="$(command -v fish || true)"
+    if [ -n "$fish_path" ] && [ -n "$profile" ]; then
       gsettings set "$profile" custom-command "'$fish_path'"
     fi
   fi
@@ -525,6 +563,7 @@ cmd_gnome() {
   keybindings) gnome_keybindings ;;
   ptyxis) gnome_ptyxis ;;
   theme) gnome_theme ;;
+  gdm) gnome_gdm ;;
   help)
     cat <<'EOF'
 Usage: setup gnome <command>
@@ -535,6 +574,7 @@ Usage: setup gnome <command>
   keybindings    Configure GNOME keybindings
   ptyxis         Configure Ptyxis terminal
   theme          gnome theme(everforest dark)
+  gdm            Install GDM and GNOME core apps
   help           Show this help message
 EOF
     ;;
@@ -607,10 +647,10 @@ cmd_dev_ai() {
 
   if ! has_cmd codex; then
     log "Installing codex CLI"
-    curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
   fi
 
-  if ! has_cmd antigravity; then
+  if ! has_cmd agy; then
     log "Installing antigravity CLI"
     curl -fsSL https://antigravity.google/cli/install.sh | bash || true
   fi
@@ -720,7 +760,7 @@ libvirt_install() {
   sudo dnf group install --with-optional virtualization
 
   log "Adding user to libvirt group (passwordless qemu:///system via polkit)"
-  sudo usermod -aG libvirt "$USER" || true
+  sudo usermod -aG libvirt "$CUR_USER" || true
 
   log "Enabling libvirtd service"
   sudo systemctl enable --now libvirtd || true
