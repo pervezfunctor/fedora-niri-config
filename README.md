@@ -22,7 +22,7 @@ On Silverblue
 sudo rpm-ostree upgrade
 ```
 
-Then run the following bootstrap script
+Then run the following bootstrap script in ptyxis.
 
 ```sh
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/pervezfunctor/fgc/main/scripts/fgc)"
@@ -109,7 +109,7 @@ Reboot your computer. Then execute the following.
 vm install post
 ```
 
-Create a Debian VM with
+Create a Debian VM(cli only) with
 
 ```sh
 vm debian         # one of debian, fedora, ubuntu, tumbleweed and arch
@@ -161,7 +161,7 @@ debian-libvirt-vm list
 debian-libvirt-vm destroy debian
 ```
 
-## Bluefin
+## Bluefin Config
 
 No need to use scripts from this repository. Use the following instead.
 
@@ -184,5 +184,3 @@ You could setup your shell with
 ```sh
 ujust bluefin-cli
 ```
-
-bootstrap script should work with `Bluefin` too. You will have access to most scripts after bootstrap.
